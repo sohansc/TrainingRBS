@@ -1,0 +1,125 @@
+create or replace procedure check_identity
+(idno customer.idproofno%type , addno customer.addressproofno%type )
+ AS
+  var number(10);
+begin
+  select count(*) into var from customer where idno = idproofno or addno = addressproofno;
+  if var>0 then
+       dbms_output.put_line('customer exists');
+   else 
+      dbms_output.put_line('customer does not exist');
+  end if;
+end check_identity;
+
+create or replace procedure new_customer
+(
+ ctitle customer.customer_title%type , cfname customer.customer_fname%type, 
+ clname customer.customer_lname%type, cdob customer.customer_dob%type, cemail customer.customer_email%type ,
+ cphone customer.customer_phone%type , cgender customer.customer_gender%type , 
+ caddress customer.customer_address%type , ccity customer.customer_city%type , 
+ cstate customer.customer_state%type , czipcode customer.customer_zipcode%type , 
+ itype customer.idproof_type%type , ino customer.idproofno%type , atype customer.addressproof_type%type , 
+ apno customer.addressproofno%type 
+)
+ AS
+begin
+   insert into customer 
+   Values (cust_sequence.nextval, ctitle, cfname , clname, cdob, 
+           cemail, cphone , cgender , caddress, ccity , cstate, czipcode , itype ,ino , atype, apno);
+   dbms_output.put_line('the new cif is = '||cust_sequence.currval); 
+end new_customer;
+/
+
+create or replace procedure new_account
+(
+ cifn bankaccount.cif%type , bcode bankaccount.branch_code%type ,
+ atid bankaccount.acc_type_id%type , abalance  bankaccount.acc_balance%type
+)
+ AS
+begin
+   insert into bankaccount 
+   Values (cifn, bcode, acc_sequence.nextval, atid , sysdate,abalance); 
+   dbms_output.put_line('the new cif is = '||acc_sequence.currval); 
+end new_account;
+
+
+
+create or replace function interest
+(
+ acno bankaccount.acc_no%type
+)
+Return intr
+ AS
+
+intr number(10);
+cbal number(10);
+intr_rate number(2,2);
+atid number(10);
+
+begin
+ 
+   Select acc_balance into cbal from bankaccount
+   where acc_no = acno ;
+   
+   
+   Select acc_type_id into atid from bankaccount
+   where acc_no = acno ;
+   
+   Select interest_rate into intr_rate from account_type
+   where acc_type_id = atid ;
+
+intr = intr_rate * cbal ;
+
+Return intr;
+
+end new_account;
+
+
+create or replace procedure acc_statement
+(
+ acno bankaccount.acc_no%type
+)
+ AS
+cifn bankaccount.cif%type;
+bcode bankaccount.branch_code%type;
+atid bankaccount.acc_type_id%type;
+aopendate bankaccount.acc_opendate%type;
+abal bankaccount.acc_balance%type;
+sdate bankaccount.acc_opendate%type;
+edate bankaccount.acc_opendate%type;
+trans_dates transaction%rowtype;
+
+begin
+   Select acc_balance into abal from bankaccount
+   where acc_no = acno ;
+   Select acc_type_id into atid from bankaccount
+   where acc_no = acno ;
+   Select branch_code into bcode from bankaccount
+   where acc_no = acno ;
+   Select cif into cifn from bankaccount
+   where acc_no = acno ;
+   Select aopendate into acc_opendate from bankaccount
+   where acc_no = acno ;
+dbms_output.put_line('enter start date');
+sdate := &sdate;
+dbms_output.put_line('enter end date');
+edate := &edate;
+
+CURSOR c1 IS
+        SELECT  * from transaction
+        where trans_date >= sdate and trans_date <= edate;
+open c1;
+
+
+
+
+dbms_output.put_line('Account Statement for Cif : '||cif);
+dbms_output.put_line('Account number : ' ||acno);
+dbms_output.put_line('branch code : '||branch_code);
+dbms_output.put_line('account type : '|| acc_type_id);
+dbms_output.put_line('account balance :' ||acc_balance);
+end new_account;
+/
+
+
+
