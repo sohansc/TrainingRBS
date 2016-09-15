@@ -24,7 +24,7 @@ public class Test {
 	    
 		
 		
-		akshay.CreateTransactions(1000, "deposit", 1, "deposit", 1);
+		akshay.CreateTransactions(1000, "withdrawal", 1, "deposit", 1);
 
 	//  	System.out.println(d.getTransactions(stringToDate("18-08-2016"),stringToDate("20-08-2016")));
 	//	System.out.println(d.getTransactions("FX"));

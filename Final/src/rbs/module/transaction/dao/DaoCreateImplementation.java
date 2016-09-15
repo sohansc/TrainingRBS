@@ -46,9 +46,9 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 			LocalDate ldt = LocalDate.now();
 			String mydate = ldt.toString();
 			SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
-		    SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
-		    java.util.Date date = format1.parse(mydate);
-		    String newdate = format2.format(date);
+			SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
+			java.util.Date date = format1.parse(mydate);
+			String newdate = format2.format(date);
 			//boolean isvalid = callAPI(mydate,country);
 			//if(isvalid){}
 			//else{return "Is not a valid date"
@@ -75,9 +75,12 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 
 						Connection c = DatabaseConnection.getConnection();
 						//transaction id should be auto incremented and assigned from DB
-						String statement = "select MAX(TRANS_ID) from TRANSACTION;";
+						String statement = "select MAX(TRANS_ID) from TRANSACTION";
 						PreparedStatement query3 = c.prepareStatement(statement);
-
+						ResultSet result_2 = query3.executeQuery();
+						result_2.next();
+						int trans = result_2.getInt(1) + 1;
+						
 						
 						dep.setTransactionDate(mydate);	
 						if(type.equals("deposit"))
@@ -87,15 +90,15 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 							dep.setAmount(amount);
 							dep.setAccountType("Deposit");
 							dep.setTransactionDesc("Deposit");
-							
+
 							//boolean happened = updatebalance(account_no,amount);
-							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+"(select MAX(TRANS_ID)+1 from TRANSACTION)"+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+"(select MAX(TRANS_ID) from TRANSACTION)"+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
-							
+							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+trans+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+trans+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
+
 							//String stmt2 = "INSERT INTO TRANSACTION VALUES("+dep.getTransactionId()+","+dep.getTransactionDesc();
 							PreparedStatement query = c.prepareStatement(stmt);
 							System.out.println(stmt);
 							//PreparedStatement query2 = c.prepareStatement(stmt2);
-							 query.executeQuery();
+							query.executeQuery();
 							//ResultSet result2 = query2.executeQuery();
 						}
 						else if (type.equals("withdrawal"))
@@ -105,7 +108,7 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 							dep.setAmount(amount);
 							dep.setAccountType("Deposit");
 							dep.setTransactionDesc("Withdrawal");
-							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+"(select MAX(TRANS_ID)+1 from TRANSACTION)"+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+"(select MAX(TRANS_ID) from TRANSACTION)"+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
+							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+trans+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+trans+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
 							//boolean happened = updatebalance(account_no,(-amount));
 							//String stmt = "insert into Transaction values("+dep.getTransactionId()+","+dep.getTransactionDate()+","+dep.getTransactionFrom()+","+dep.getTransactionFromType()+","+dep.getTransactionTo()+","+dep.getTransactionToType()+","+dep.getAmount()+","+dep.getAccountType();
 							//String stmt2 = "insert into Deposit values("+dep.getTransactionId()+","+dep.getTransactionDesc();
@@ -116,7 +119,104 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 							ResultSet result = query.executeQuery();
 							//ResultSet result2 = query2.executeQuery();
 						}
+						c.close();
 						return "create successful";
+					}
+					else{
+						return "Account number doesn't exist";
+					}
+				}
+				else{
+					return "You don't have the required permissions";
+				}
+
+			}
+			else{
+				return "The date is not correct";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public String CreateTransactions(int amount, int account_no, String description, int empid) {
+		try {
+			
+			//Obtain today's date
+			
+			LocalDate ldt = LocalDate.now();
+			String mydate = ldt.toString();
+			SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
+			java.util.Date date = format1.parse(mydate);
+			String newdate = format2.format(date);
+			
+			//Is today a holiday
+			
+			//boolean isvalid = callAPI(mydate,country);
+			//if(isvalid){}
+			//else{return "Is not a valid date"
+			//}
+			boolean isvalid = true;
+			if (isvalid){
+				
+				//DO YOU HAVE THE REQUIRED PERMISSIONS TO CREATE THIS TRANSACTION
+				
+				//JSONObject obj3 = new JSONObject();
+				//obj3 = bankstructuresAPI(emp_id);
+				//String permissions = obj3.getString(create_permissions);
+				//int amount_allowed = obj3.getInt(amount_allowed);
+				String permissions = "allowed"; 
+				int amount_allowed = 100000;
+				if(permissions.equalsIgnoreCase("allowed")&&amount_allowed>=amount)
+				{
+					//DOES THE ENTERED BANK ACCOUNT EXIST
+					
+					//JSONObject obj = new JSONObject();
+					//obj = callAPI(account_no);
+					//int length = obj.length()
+					int length = 10;
+					if(length!=0)
+					{
+						//CREATE A DEPOSIT TRANSACTION CLASS METHOD
+						
+						DepositTransaction dep = new DepositTransaction();
+						//will refer to accounts team API to get account details
+
+						Connection c = DatabaseConnection.getConnection();
+						
+						String statement = "select MAX(TRANS_ID) from TRANSACTION";
+						PreparedStatement query3 = c.prepareStatement(statement);
+						ResultSet result_2 = query3.executeQuery();
+						result_2.next();
+						int trans = result_2.getInt(1) + 1;
+						//transaction id should be auto incremented and assigned from DB
+
+
+						dep.setTransactionDate(newdate);	
+						dep.setTransactionTo(account_no);
+						dep.setTransactionToType("SB");
+						dep.setTransactionFrom(0);
+						dep.setTransactionFromType("SB");
+						dep.setAmount(amount);
+						dep.setAccountType("Deposit");
+						dep.setTransactionDesc("Deposit");
+
+						//boolean happened = updatebalance(account_no,amount);
+						String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+trans+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+trans+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
+
+						//String stmt2 = "INSERT INTO TRANSACTION VALUES("+dep.getTransactionId()+","+dep.getTransactionDesc();
+						PreparedStatement query = c.prepareStatement(stmt);
+						System.out.println(stmt);
+						//PreparedStatement query2 = c.prepareStatement(stmt2);
+						query.executeQuery();
+						//ResultSet result2 = query2.executeQuery();
+						c.close();
+						return "create successful";
+						
 					}
 					else{
 						return "Account number doesn't exist";
