@@ -13,16 +13,18 @@ public class Test {
 		
 				
 		//System.out.println(d.getTransactions(stringToDate("18-08-2016")));
-		//DaoCreateImplementation akshay = new DaoCreateImplementation();
-		LocalDate ldt = LocalDate.now();
-		String mydate = ldt.toString();
-		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
-	    SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
-	    Date date = (Date) format1.parse(mydate);
-	    System.out.println(format2.format(date));
+		DaoCreateImplementation akshay = new DaoCreateImplementation();
+		//LocalDate ldt = LocalDate.now();
+		//String mydate = ldt.toString();
+		//SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+	    //SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
+	    //java.util.Date date = format1.parse(mydate);
+	    //String newdate = format2.format(date);
+	    //System.out.println(newdate);
+	    
 		
 		
-	//	akshay.CreateTransactions(1000, "deposit", 1, "deposit", 1);
+		akshay.CreateTransactions(1000, "deposit", 1, "deposit", 1);
 
 	//  	System.out.println(d.getTransactions(stringToDate("18-08-2016"),stringToDate("20-08-2016")));
 	//	System.out.println(d.getTransactions("FX"));
@@ -30,7 +32,7 @@ public class Test {
 	}
 	
 	static Date stringToDate(String value){
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+		SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
 		java.util.Date date = null;
 		try {
 			date = format.parse(value);

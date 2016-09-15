@@ -45,9 +45,10 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 		try {
 			LocalDate ldt = LocalDate.now();
 			String mydate = ldt.toString();
-			SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
-			java.util.Date date= sdf1.parse(mydate);
-			java.sql.Date sqlStartDate = new java.sql.Date(date.getTime()); 
+			SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+		    SimpleDateFormat format2 = new SimpleDateFormat("dd-MMM-yyyy");
+		    java.util.Date date = format1.parse(mydate);
+		    String newdate = format2.format(date);
 			//boolean isvalid = callAPI(mydate,country);
 			//if(isvalid){}
 			//else{return "Is not a valid date"
@@ -74,7 +75,10 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 
 						Connection c = DatabaseConnection.getConnection();
 						//transaction id should be auto incremented and assigned from DB
-						dep.setTransactionId(1);
+						String statement = "select MAX(TRANS_ID) from TRANSACTION;";
+						PreparedStatement query3 = c.prepareStatement(statement);
+
+						
 						dep.setTransactionDate(mydate);	
 						if(type.equals("deposit"))
 						{
@@ -85,7 +89,7 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 							dep.setTransactionDesc("Deposit");
 							
 							//boolean happened = updatebalance(account_no,amount);
-							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+dep.getTransactionId()+",'"+sqlStartDate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+dep.getTransactionId()+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
+							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+"(select MAX(TRANS_ID)+1 from TRANSACTION)"+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+"(select MAX(TRANS_ID) from TRANSACTION)"+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
 							
 							//String stmt2 = "INSERT INTO TRANSACTION VALUES("+dep.getTransactionId()+","+dep.getTransactionDesc();
 							PreparedStatement query = c.prepareStatement(stmt);
@@ -101,7 +105,7 @@ public class DaoCreateImplementation implements DaoCreateTransaction {
 							dep.setAmount(amount);
 							dep.setAccountType("Deposit");
 							dep.setTransactionDesc("Withdrawal");
-							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+dep.getTransactionId()+",'"+sqlStartDate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+dep.getTransactionId()+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
+							String stmt = "BEGIN \n SAVEPOINT STARTTRANS; \n INSERT INTO TRANSACTION VALUES("+"(select MAX(TRANS_ID)+1 from TRANSACTION)"+",'"+newdate+"',"+dep.getTransactionFrom()+",'"+dep.getTransactionFromType()+"',"+dep.getTransactionTo()+",'"+dep.getTransactionToType()+"',"+dep.getAmount()+",'"+dep.getAccountType()+"');\n INSERT INTO DEPOSIT VALUES("+"(select MAX(TRANS_ID) from TRANSACTION)"+",'"+dep.getTransactionDesc()+"');\n EXCEPTION \n WHEN OTHERS THEN \n ROLLBACK TO starttrans; \n RAISE; \n END;";
 							//boolean happened = updatebalance(account_no,(-amount));
 							//String stmt = "insert into Transaction values("+dep.getTransactionId()+","+dep.getTransactionDate()+","+dep.getTransactionFrom()+","+dep.getTransactionFromType()+","+dep.getTransactionTo()+","+dep.getTransactionToType()+","+dep.getAmount()+","+dep.getAccountType();
 							//String stmt2 = "insert into Deposit values("+dep.getTransactionId()+","+dep.getTransactionDesc();
